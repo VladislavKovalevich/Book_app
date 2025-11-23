@@ -1,41 +1,48 @@
 const express = require('express');
+const mysql = require('mysql2/promise');
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Local dictionary of books
-const books = [
-	{
-		id: 1,
-		title: 'The Great Gatsby',
-		author: 'F. Scott Fitzgerald',
-		publish_year: 1925,
-		description: 'A novel set in the Roaring Twenties, exploring themes of wealth, love, and the American Dream.'
-	},
-	{
-		id: 2,
-		title: 'To Kill a Mockingbird',
-		author: 'Harper Lee',
-		publish_year: 1960,
-		description: 'A story of racial injustice and childhood innocence in the Deep South.'
-	},
-	{
-		id: 3,
-		title: '1984',
-		author: 'George Orwell',
-		publish_year: 1949,
-		description: 'A dystopian novel about totalitarianism and surveillance.'
-	}
-];
+const port = process.env.PORT || 80;
 
-// GET endpoint to return all books as JSON
-app.get('/books', (req, res) => {
-	res.json(books);
+const dbConfig = {
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || 'root',
+  database: process.env.DB_NAME || 'booksdb',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+};
+
+let pool;
+
+async function initDb() {
+  pool = mysql.createPool(dbConfig);
+  console.log(`Connected to DB at ${dbConfig.host}:${dbConfig.port}`);
+}
+
+// Root endpoint to verify the app is running
+app.get('/', async (req, res) => {
+  res.send('Books app is running');
 });
 
-// POST endpoint to create a new book (accepts JSON or urlencoded)
-app.post('/create-book', (req, res) => {
+// GET endpoint to return all books as JSON
+app.get('/books', async (req, res) => {
+	try {
+    	const [rows] = await pool.query('SELECT * FROM books');
+    	res.json(rows);
+  	} catch (err) {
+    	console.error(err);
+    	res.status(500).send('DB error');
+  	}
+});
+
+// POST endpoint to create a new book
+app.post('/create-book', async (req, res) => {
 	const { title, author, publish_year, description } = req.body;
 	if (!title) {
 		return res.status(400).json({ error: 'Title is required.' });
@@ -49,45 +56,43 @@ app.post('/create-book', (req, res) => {
     if (!description) {
         return res.status(400).json({ error: 'Description is required.' });
     }
-	const newBook = {
-		id: books.length ? books[books.length - 1].id + 1 : 1,
-		title,
-		author,
-		publish_year: parseInt(publish_year, 10),
-		description
-	};
-	books.push(newBook);
-	res.status(201).json(newBook);
+	try {
+    const [result] = await pool.query(
+      'INSERT INTO books (title, author, publish_year, description) VALUES (?, ?, ?, ?)', [title, author, parseInt(publish_year, 10), description]);
+    	res.json({ id: result.insertId, title, author, publish_year: parseInt(publish_year, 10), description });
+  	} catch (err) {
+    	console.error(err);
+    	res.status(500).send('DB error');
+  	}
 });
 
-// GET endpoint to show book details by id as JSON
-app.get('/books/:id', (req, res) => {
+// GET endpoint to show book details by id
+app.get('/books/:id', async (req, res) => {
 	const bookId = parseInt(req.params.id, 10);
-	const book = books.find(b => b.id === bookId);
-	if (!book) {
-		return res.status(404).json({ error: 'Book not found' });
-	}
-	res.json(book);
+		try {
+    	const [rows] = await pool.query('SELECT * FROM books WHERE id = ?', [bookId]);
+    	res.json(rows);
+  	} catch (err) {
+    	console.error(err);
+    	res.status(500).send('DB error');
+  	}
 });
 
-// DELETE endpoint to delete a book by id (returns JSON result)
-app.delete('/books/:id', (req, res) => {
+// DELETE endpoint to delete a book by id
+app.delete('/books/:id', async (req, res) => {
 	const bookId = parseInt(req.params.id, 10);
-	const bookIndex = books.findIndex(b => b.id === bookId);
-	if (bookIndex === -1) {
-		return res.status(404).json({ error: 'Book not found' });
-	}
-	const deletedBook = books.splice(bookIndex, 1)[0];
-	res.json({ deleted: deletedBook });
+	try {
+    	const [rows] = await pool.query('DELETE FROM books WHERE id = ?', [bookId]);
+    	res.json(rows);
+  	} catch (err) {
+    	console.error(err);
+    	res.status(500).send('DB error');
+  	}
 });
 
 // PUT endpoint to update an existing book by id
-app.put('/books/:id', (req, res) => {
+app.put('/books/:id', async (req, res) => {
 	const bookId = parseInt(req.params.id, 10);
-	const bookIndex = books.findIndex(b => b.id === bookId);
-	if (bookIndex === -1) {
-		return res.status(404).json({ error: 'Book not found' });
-	}
 	const { title, author, publish_year, description } = req.body;
 	if (!title) {
 		return res.status(400).json({ error: 'Title is required.' });
@@ -101,16 +106,18 @@ app.put('/books/:id', (req, res) => {
 	if (!description) {
 		return res.status(400).json({ error: 'Description is required.' });
 	}
-	books[bookIndex] = {
-		id: bookId,
-		title,
-		author,
-		publish_year: parseInt(publish_year, 10),
-		description
-	};
-	res.json(books[bookIndex]);
+	try {
+	const [result] = await pool.query(
+	  'UPDATE books SET title = ?, author = ?, publish_year = ?, description = ? WHERE id = ?', [title, author, parseInt(publish_year, 10), description, bookId]);
+		res.json({ id: bookId, title, author, publish_year: parseInt(publish_year, 10), description });
+  	} catch (err) {
+		console.error(err);
+		res.status(500).send('DB error');
+  	}
 });
 
-app.listen(process.env.PORT || 3000, () => {
-	console.log(`Server is running on port ${process.env.PORT || 3000}`);
+initDb().then(() => {
+  app.listen(port, () => {
+    console.log(`Books API listening on port ${port}`);
+  });
 });
