@@ -25,7 +25,6 @@ steps:
         "set", "image",
         "deployment/books-app",
         "app=us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA",
-        "-n", "books"
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
@@ -36,7 +35,6 @@ steps:
       [
         "rollout", "status",
         "deployment/books-app",
-        "-n", "books"
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
