@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-app
+  namespace: default
+  labels:
+    app: book-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: book-app
+  template:
+    metadata:
+      labels:
+        app: book-app
+    spec:
+      serviceAccountName: ksa-book-app
+      containers:
+        - name: book-app
+          image: us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:v0.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_HOST
+              value: "127.0.0.1"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-book-pass-credentials
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-book-pass-credentials
+                  key: DB_PASS
+            - name: PORT
+              value: "80"
+          ports:
+            - containerPort: 80
+              name: http
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
+          args:
+            - "--address=0.0.0.0"
+            - "--port=3306"
+            - "--private-ip"
+            - "moonlit-academy-478519-t8:us-central1:books-db"
+          ports:
+            - containerPort: 3306
+              name: cloudsql
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
