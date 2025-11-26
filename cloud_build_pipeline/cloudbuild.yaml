@@ -34,17 +34,6 @@ steps:
   - name: "gcr.io/cloud-builders/kubectl"
     args:
       [
-        "set", "image",
-        "deployment/book-app",
-        "book-app=us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA",
-      ]
-    env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
-      - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-
-  - name: "gcr.io/cloud-builders/kubectl"
-    args:
-      [
         "rollout", "status",
         "deployment/book-app",
         "--timeout=5m",
