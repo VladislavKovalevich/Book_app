@@ -18,6 +18,14 @@ steps:
         "--region=$_GKE_ZONE",
         "--project=moonlit-academy-478519-t8"
       ]
+      
+  - name: gcr.io/cloud-builders/kubectl
+    args:
+      [
+        "apply", 
+        "-f", 
+        "k8s/deployment.yaml",
+      ]
 
   - name: "gcr.io/cloud-builders/kubectl"
     args:
@@ -35,6 +43,7 @@ steps:
       [
         "rollout", "status",
         "deployment/book-app",
+        "--timeout=5m",
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
