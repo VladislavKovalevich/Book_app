@@ -26,6 +26,10 @@ steps:
         "-f", 
         "k8s/deployment.yaml",
       ]
+    env:
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
+      - "CLOUDSDK_PROJECT=moonlit-academy-478519-t8"
 
   - name: "gcr.io/cloud-builders/kubectl"
     args:
