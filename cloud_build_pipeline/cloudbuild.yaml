@@ -15,7 +15,7 @@ steps:
       [
         "container", "clusters", "get-credentials",
         "$_GKE_CLUSTER",
-        "--zone=$_GKE_ZONE",
+        "--region=$_GKE_ZONE",
         "--project=moonlit-academy-478519-t8"
       ]
 
@@ -47,7 +47,7 @@ images:
 
 substitutions:
   _GKE_CLUSTER: "books-cluster"
-  _GKE_ZONE: "us-central1-a"
+  _GKE_ZONE: "us-central1"
 
 options:
   logging: CLOUD_LOGGING_ONLY
