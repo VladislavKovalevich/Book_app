@@ -20,13 +20,13 @@ steps:
         liquibase \
           --url=jdbc:mysql://127.0.0.1:3306/booksdb \
           --changeLogFile=liquibase/changelogs/db.changelog-master.yaml \
-          --username=$$USERNAME \
-          --password=$$PASSWORD \
+          --username=books_user \
+          --password=admin \
           update
 
         # Kill the proxy after migration
         kill $$PROXY_PID
-    secretEnv: ['USERNAME', 'PASSWORD']
+    # secretEnv: ['USERNAME', 'PASSWORD']
   
   - name: gcr.io/cloud-builders/docker
     args:
@@ -81,12 +81,12 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
-availableSecrets:
-  secretManager:
-  - versionName: projects/494155220288/secrets/db-book-password/versions/1
-    env: 'PASSWORD'
-  - versionName: projects/494155220288/secrets/db-book-user/versions/1
-    env: 'USERNAME'
+# availableSecrets:
+#   secretManager:
+#   - versionName: projects/494155220288/secrets/db-book-password/versions/1
+#     env: 'PASSWORD'
+#   - versionName: projects/494155220288/secrets/db-book-user/versions/1
+#     env: 'USERNAME'
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
