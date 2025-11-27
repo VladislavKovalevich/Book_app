@@ -23,6 +23,10 @@ steps:
         "--password=$DB_PASS",
         "update"
       ]
+    env:
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "DB_USER"
+      - "DB_PASS"
 
   - name: gcr.io/cloud-builders/docker
     args:
@@ -76,6 +80,13 @@ steps:
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/moonlit-academy-478519-t8/secrets/db-user/versions/latest
+      env: "DB_USER"
+    - versionName: projects/moonlit-academy-478519-t8/secrets/db-pass/versions/latest
+      env: "DB_PASS"
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
