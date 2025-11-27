@@ -11,7 +11,6 @@ steps:
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
-
     sidecars:
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
@@ -19,6 +18,7 @@ steps:
         [
           "--port=3306",
           "--address=0.0.0.0",
+          "--private-ip",
           "moonlit-academy-478519-t8:us-central1:books-db"
         ]
 
