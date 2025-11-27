@@ -14,19 +14,17 @@ steps:
   - name: liquibase/liquibase:4.23
     id: liquibase-migration
     waitFor: ["cloud-sql-proxy"]
-    entrypoint: liquibase
-    env:
-      - DB_USER
-      - DB_PASSWORD
+    entrypoint: liquibase 
     args:
       [
         "--url=jdbc:mysql://127.0.0.1:3306/booksdb",
         "--changeLogFile=liquibase/changelogs/db.changelog-master.yaml",
-        "--username=${DB_USER}",
-        "--password=${DB_PASSWORD}",
+        "--username=$$USERNAME",
+        "--password=$$PASSWORD",
         "update"
       ]
-
+    secretEnv: ['USERNAME', 'PASSWORD']
+  
   - name: gcr.io/cloud-builders/docker
     args:
       [
@@ -80,10 +78,12 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
-secrets:
-- secretEnv:
-    DB_USER: projects/moonlit-academy-478519-t8/secrets/db-user/versions/latest
-    DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-password/versions/latest
+availableSecrets:
+  secretManager:
+  - versionName: projects/PROJECT_ID/secrets/DOCKER_PASSWORD_SECRET_NAME/versions/DOCKER_PASSWORD_SECRET_VERSION
+    env: 'PASSWORD'
+  - versionName: projects/PROJECT_ID/secrets/DOCKER_USERNAME_SECRET_NAME/versions/DOCKER_USERNAME_SECRET_VERSION
+    env: 'USERNAME'
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
@@ -91,8 +91,6 @@ images:
 substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
-  _DB_PASS: DB_PASS
-  _DB_USER: DB_USER
 
 options:
   logging: CLOUD_LOGGING_ONLY
