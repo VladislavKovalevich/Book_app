@@ -19,8 +19,8 @@ steps:
           liquibase/liquibase:4.23 \
           --url=jdbc:mysql://127.0.0.1:3306/booksdb \
           --changeLogFile=/liquibase/changelogs/db.changelog-master.yaml \
-          --username=$$DB_USER \
-          --password=$$DB_PASSWORD \
+          --username=book_user \
+          --password=admin \
           update
 
         echo "Stopping Cloud SQL Proxy..."
