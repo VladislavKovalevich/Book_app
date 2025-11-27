@@ -14,8 +14,6 @@ steps:
         echo "Running Liquibase migrations..."
         docker run --rm \
           -v $$PWD/liquibase:/liquibase \
-          -e DB_USER=$$DB_USER \
-          -e DB_PASSWORD=$$DB_PASSWORD \
           liquibase/liquibase:4.23 \
           --url=jdbc:mysql://127.0.0.1:3306/booksdb \
           --changeLogFile=/liquibase/changelogs/db.changelog-master.yaml \
@@ -25,7 +23,6 @@ steps:
 
         echo "Stopping Cloud SQL Proxy..."
         kill $$PROXY_PID
-    secretEnv: ['DB_USER', 'DB_PASSWORD']
   
   - name: gcr.io/cloud-builders/docker
     args:
