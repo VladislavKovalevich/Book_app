@@ -27,7 +27,7 @@ async function initDb() {
 
 // Root endpoint to verify the app is running
 app.get('/', async (req, res) => {
-  res.send('App is running. CI/CD test message. qwerty;');
+  res.send('App is running. CI/CD pipline changes. Lorem ipsum test changes');
 });
 
 // GET endpoint to return all books as JSON
