@@ -19,12 +19,12 @@ steps:
       [
         "--url=jdbc:mysql://127.0.0.1:3306/booksdb",
         "--changeLogFile=liquibase/changelogs/db.changelog-master.yaml",
+        "--username=${DB_USER}",
+        "--password=${DB_PASS}",
         "update"
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
-      - "DB_USER"
-      - "DB_PASS"
 
   - name: gcr.io/cloud-builders/docker
     args:
