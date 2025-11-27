@@ -5,35 +5,27 @@ steps:
     args:
       - -c
       - |
-        echo "Prepare lib directory..."
-        mkdir -p /liquibase/lib
-
-        echo "Downloading MySQL Connector/J..."
-        curl -L -o /liquibase/lib/mysql-connector-java.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.1.0/mysql-connector-java-8.1.0.jar
-
-        echo "Download Cloud SQL Proxy..."
-        curl -o cloud_sql_proxy https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
-        chmod +x cloud_sql_proxy
-
-        echo "Start Cloud SQL Proxy..."
+        echo "Starting Cloud SQL Proxy..."
         ./cloud_sql_proxy --port=3306 --address=127.0.0.1 --private-ip moonlit-academy-478519-t8:us-central1:books-db &
-        PROXY_PID=$$!
-        echo "Waiting 10 seconds for proxy to start..."
-        sleep 10
+        PROXY_PID=$$
+        echo "Waiting 5 seconds for proxy..."
+        sleep 5
 
-        echo "Run Liquibase migrations"
-        liquibase \
-          --classpath=/liquibase/lib/mysql-connector-java.jar \
-          --driver=com.mysql.cj.jdbc.Driver \
+        echo "Running Liquibase migrations..."
+        docker run --rm \
+          -v $PWD/liquibase:/liquibase \
+          -e DB_USER=$$DB_USER \
+          -e DB_PASSWORD=$$DB_PASSWORD \
+          liquibase/liquibase:4.23 \
           --url=jdbc:mysql://127.0.0.1:3306/booksdb \
-          --changeLogFile=liquibase/changelogs/db.changelog-master.yaml \
-          --username=books_user \
-          --password=admin \
+          --changeLogFile=/liquibase/changelogs/db.changelog-master.yaml \
+          --username=$$DB_USER \
+          --password=$$DB_PASSWORD \
           update
 
-        echo "Kill the proxy after migration..." 
+        echo "Stopping Cloud SQL Proxy..."
         kill $$PROXY_PID
-    # secretEnv: ['USERNAME', 'PASSWORD']
+    secretEnv: ['DB_USER', 'DB_PASSWORD']
   
   - name: gcr.io/cloud-builders/docker
     args:
