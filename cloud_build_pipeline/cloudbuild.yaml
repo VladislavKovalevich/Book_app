@@ -8,7 +8,6 @@ steps:
         "--private-ip",
         "moonlit-academy-478519-t8:us-central1:books-db"
       ]
-    entrypoint: /
     waitFor: ["-"]
 
   - name: liquibase/liquibase:4.23
