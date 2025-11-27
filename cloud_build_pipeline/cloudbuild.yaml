@@ -19,8 +19,8 @@ steps:
       [
         "--url=jdbc:mysql://127.0.0.1:3306/booksdb",
         "--changeLogFile=liquibase/changelogs/db.changelog-master.yaml",
-        "--username=${DB_USER}",
-        "--password=${DB_PASS}",
+        "--username=$_DB_USER",
+        "--password=$_DB_PASS",
         "update"
       ]
     env:
@@ -92,6 +92,8 @@ images:
 substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
+  _DB_PASS: "${DB_PASS}"
+  _DB_USER: "${DB_USER}"
 
 options:
   logging: CLOUD_LOGGING_ONLY
