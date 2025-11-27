@@ -1,4 +1,5 @@
 steps:
+  # Cloud SQL Proxy
   - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
     id: cloud-sql-proxy
     args:
@@ -10,21 +11,23 @@ steps:
       ]
     waitFor: ["-"]
 
-  - name: liquibase/liquibase:4.23
-    id: liquibase-migration
+  # Flyway migration using secrets
+  - name: flyway/flyway:9.23.1
+    id: flyway-migration
     waitFor: ["cloud-sql-proxy"]
-    entrypoint: liquibase
+    entrypoint: flyway
     args:
       [
-        "--url=jdbc:mysql://127.0.0.1:3306/booksdb",
-        "--changeLogFile=liquibase/changelogs/db.changelog-master.yaml",
-        "--username=$$DB_USER",
-        "--password=$$DB_PASS",
-        "update"
+        "migrate",
+        "-url=jdbc:mysql://127.0.0.1:3306/booksdb",
+        "-locations=filesystem:flyway/sql"
       ]
     env:
+      - "FLYWAY_USER=$DB_USER"
+      - "FLYWAY_PASSWORD=$DB_PASS"
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
 
+  # Docker build
   - name: gcr.io/cloud-builders/docker
     args:
       [
@@ -33,9 +36,11 @@ steps:
         "."
       ]
 
+  # Docker push
   - name: gcr.io/cloud-builders/docker
     args: ["push", "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA"]
 
+  # GKE credentials
   - name: "gcr.io/cloud-builders/gcloud"
     args:
       [
@@ -45,6 +50,7 @@ steps:
         "--project=moonlit-academy-478519-t8"
       ]
       
+  # Apply Kubernetes deployment
   - name: gcr.io/cloud-builders/kubectl
     args:
       [
@@ -57,6 +63,7 @@ steps:
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
       - "CLOUDSDK_PROJECT=moonlit-academy-478519-t8"
 
+  # Update deployment image
   - name: "gcr.io/cloud-builders/kubectl"  
     args: 
       [ 
@@ -67,6 +74,7 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
     
+  # Rollout status check
   - name: "gcr.io/cloud-builders/kubectl"
     args:
       [
@@ -78,19 +86,21 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
+# Secrets correctly referenced
 secrets:
 - secretEnv:
     DB_USER: projects/moonlit-academy-478519-t8/secrets/db-user/versions/1
-    DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-password/versions/1
+    DB_PASS: projects/moonlit-academy-478519-t8/secrets/db-password/versions/1
 
+# Docker image output
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
 
+# Substitutions
 substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
-  _DB_PASS: DB_PASS
-  _DB_USER: DB_USER
 
+# Logging options
 options:
   logging: CLOUD_LOGGING_ONLY
