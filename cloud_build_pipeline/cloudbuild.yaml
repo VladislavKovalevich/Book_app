@@ -83,9 +83,9 @@ steps:
 
 availableSecrets:
   secretManager:
-  - versionName: projects/moonlit-academy-478519-t8/secrets/db-password/versions/latest
+  - versionName: projects/494155220288/secrets/db-book-password/versions/1
     env: 'PASSWORD'
-  - versionName: projects/moonlit-academy-478519-t8/secrets/db-user/versions/latest
+  - versionName: projects/494155220288/secrets/db-book-user/versions/1
     env: 'USERNAME'
 
 images:
