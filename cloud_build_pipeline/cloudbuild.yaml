@@ -1,5 +1,19 @@
 steps:
+  - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
+    id: cloud-sql-proxy
+    args:
+      [
+        "--port=3306",
+        "--address=0.0.0.0",
+        "--private-ip",
+        "moonlit-academy-478519-t8:us-central1:books-db"
+      ]
+    entrypoint: /
+    waitFor: ["-"]
+
   - name: liquibase/liquibase:4.23
+    id: liquibase-migration
+    waitFor: ["cloud-sql-proxy"]
     entrypoint: liquibase
     args:
       [
@@ -9,18 +23,6 @@ steps:
         "--password=$DB_PASS",
         "update"
       ]
-    env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
-    sidecars:
-      - name: cloud-sql-proxy
-        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
-        args:
-          [
-            "--port=3306",
-            "--address=0.0.0.0",
-            "--private-ip",
-            "moonlit-academy-478519-t8:us-central1:books-db"
-          ]
 
   - name: gcr.io/cloud-builders/docker
     args:
