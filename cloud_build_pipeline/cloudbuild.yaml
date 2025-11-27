@@ -17,6 +17,7 @@ steps:
         echo "Run Liquibase migrations"
         liquibase \
           --classpath=/liquibase/lib/mysql-connector-java.jar \
+          --driver=com.mysql.cj.jdbc.Driver \
           --url=jdbc:mysql://127.0.0.1:3306/booksdb \
           --changeLogFile=liquibase/changelogs/db.changelog-master.yaml \
           --username=books_user \
