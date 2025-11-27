@@ -13,7 +13,7 @@ steps:
 
         echo "Running Liquibase migrations..."
         docker run --rm \
-          -v $PWD/liquibase:/liquibase \
+          -v $$PWD/liquibase:/liquibase \
           -e DB_USER=$$DB_USER \
           -e DB_PASSWORD=$$DB_PASSWORD \
           liquibase/liquibase:4.23 \
