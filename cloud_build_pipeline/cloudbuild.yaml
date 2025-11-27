@@ -1,4 +1,27 @@
 steps:
+  - name: liquibase/liquibase:4.23
+    entrypoint: liquibase
+    args:
+      [
+        "--url=jdbc:mysql://127.0.0.1:3306/booksdb",
+        "--changeLogFile=liquibase/changelogs/db.changelog-master.yaml",
+        "--username=$DB_USER",
+        "--password=$DB_PASS",
+        "update"
+      ]
+    env:
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+
+    sidecars:
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
+        args:
+        [
+          "--port=3306",
+          "--address=0.0.0.0",
+          "moonlit-academy-478519-t8:us-central1:books-db"
+        ]
+
   - name: gcr.io/cloud-builders/docker
     args:
       [
