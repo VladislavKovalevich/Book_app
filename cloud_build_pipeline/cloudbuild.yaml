@@ -1,29 +1,4 @@
-steps:
-  - name: liquibase/liquibase:4.23
-    id: liquibase-migration
-    entrypoint: /bin/sh
-    args:
-      - -c
-      - |
-        echo "Starting Cloud SQL Proxy..."
-        ./cloud_sql_proxy --port=3306 --address=127.0.0.1 --private-ip moonlit-academy-478519-t8:us-central1:books-db &
-        PROXY_PID=$$
-        echo "Waiting 5 seconds for proxy..."
-        sleep 5
-
-        echo "Running Liquibase migrations..."
-        docker run --rm \
-          -v $$PWD/liquibase:/liquibase \
-          liquibase/liquibase:4.23 \
-          --url=jdbc:mysql://127.0.0.1:3306/booksdb \
-          --changeLogFile=/liquibase/changelogs/db.changelog-master.yaml \
-          --username=book_user \
-          --password=admin \
-          update
-
-        echo "Stopping Cloud SQL Proxy..."
-        kill $$PROXY_PID
-  
+steps:  
   - name: gcr.io/cloud-builders/docker
     args:
       [
@@ -76,13 +51,6 @@ steps:
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-
-# availableSecrets:
-#   secretManager:
-#   - versionName: projects/494155220288/secrets/db-book-password/versions/1
-#     env: 'PASSWORD'
-#   - versionName: projects/494155220288/secrets/db-book-user/versions/1
-#     env: 'USERNAME'
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
