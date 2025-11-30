@@ -1,5 +1,5 @@
 steps:
-  - name: "flyway/flyway:10.12.0"
+  - name: "gcr.io/moonlit-academy-478519-t8/flyway-proxy:latest"
     id: "flyway-migrate"
     entrypoint: "bash"
     args:
