@@ -5,7 +5,7 @@ steps:
     args:
       - '-c'
       - |
-        apt-get update
+        apt-get update && apt-get install -y curl tar default-jdk
         
         curl -o /usr/local/bin/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
         chmod +x /usr/local/bin/cloud-sql-proxy
@@ -15,14 +15,14 @@ steps:
         mv flyway-10.12.0 /opt/flyway
         ln -s /opt/flyway/flyway /usr/local/bin/flyway
 
-        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
+        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
 
         flyway \
-          -url=jdbc:mysql://127.0.0.1:3306/booksdb \
+          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
           -user=books_user \
           -password=root \
-          -locations=home/vladkavalevich_test/Book_app/flyway/sql \
+          -locations=home/$_HOME_USER/Book_app/flyway/sql \
           migrate
 
   - name: gcr.io/cloud-builders/docker
@@ -87,6 +87,9 @@ substitutions:
   _DB_NAME: "booksdb"
   _DB_USER: "books_user"
   _DB_PASSWORD: "root"
+  _HOME_USER: "vladkavalevich_test"
+  _DB_ADDRESS: "127.0.0.1"
+  _DB_PORT: "3306"
 
 options:
   logging: CLOUD_LOGGING_ONLY
