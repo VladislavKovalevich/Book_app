@@ -8,7 +8,7 @@ steps:
         echo "=== Download Flyway ==="
         curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
         tar -xvf flyway.tar.gz
-        export PATH="$PWD/flyway-10.12.0:$PATH"
+        export PATH="/workspace/flyway-10.12.0:/usr/local/bin:/opt/flyway"
 
         echo "=== Download Cloud SQL Proxy ==="
         curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
@@ -29,7 +29,7 @@ steps:
           -url=jdbc:mysql://127.0.0.1:3306/$_DB_NAME \
           -user=$_DB_USER \
           -password=$_DB_PASSWORD \
-          -locations=filesystem:$(pwd)/Book_app/flyway/sql \
+          -locations=filesystem:/workspace/Book_app/flyway/sql \
           -baselineOnMigrate=true \
           migrate
 
