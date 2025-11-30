@@ -6,7 +6,7 @@ steps:
       [
         "moonlit-academy-478519-t8:us-central1:books-db",
         "--port=3306",
-        "--adress=127.0.0.1"
+        "--address=127.0.0.1"
       ]
 
   - name: "flyway/flyway:10.12.0"
