@@ -21,7 +21,7 @@ steps:
           -url=jdbc:mysql://$_DB_PUBLIC_IP:3306/$_DB_NAME \
           -user=$_DB_USER \
           -password=$_DB_PASSWORD \
-          -locations=filesystem:flyway/sql \
+          -locations=filesystem:Book_app/flyway/sql \
           -baselineOnMigrate=true \
           migrate
 
