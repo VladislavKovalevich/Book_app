@@ -30,7 +30,7 @@ steps:
     args:
       - '-c'
       - |
-        ./usr/local/bin/cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
+        ./cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
         sleep 5  # wait for proxy to be ready
 
   # Step 4: Run Flyway migration
