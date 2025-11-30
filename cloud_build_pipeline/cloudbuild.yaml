@@ -1,5 +1,5 @@
 steps:
-  - name: "gcr.io/cloud-builders/wget"
+  - name: "ubuntu"
     id: "Download and run Flyway"
     entrypoint: "bash"
     args:
