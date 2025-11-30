@@ -1,33 +1,30 @@
 steps:
-  # Cloud SQL Proxy
-  - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.3
-    id: cloud-sql-proxy
+  - name: "gcr.io/cloud-builders/wget"
+    id: "Download Flyway"
+    entrypoint: "bash"
     args:
-      [
-        "--port=3306",
-        "--address=0.0.0.0",
-        "--private-ip",
-        "moonlit-academy-478519-t8:us-central1:books-db"
-      ]
-    waitFor: ["-"]
+      - "-c"
+      - |
+        wget -qO flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.10.0/flyway-commandline-10.10.0-linux-x64.tar.gz
+        tar -xzf flyway.tar.gz
+        mv flyway-10.10.0 flyway
 
-  # Flyway migration using secrets
-  - name: flyway/flyway:9.23.1
-    id: flyway-migration
-    waitFor: ["cloud-sql-proxy"]
-    entrypoint: flyway
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "Run Flyway Migrations"
+    entrypoint: "bash"
     args:
-      [
-        "migrate",
-        "-url=jdbc:mysql://127.0.0.1:3306/booksdb",
-        "-locations=filesystem:flyway/sql"
-      ]
-    env:
-      - "FLYWAY_USER=$DB_USER"
-      - "FLYWAY_PASSWORD=$DB_PASS"
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "-c"
+      - |
+        echo "Running Flyway migrations..."
 
-  # Docker build
+        ./flyway/flyway \
+          -url=jdbc:mysql://$_DB_PUBLIC_IP:3306/$_DB_NAME \
+          -user=$_DB_USER \
+          -password=$_DB_PASSWORD \
+          -locations=filesystem:flyway/sql \
+          -baselineOnMigrate=true \
+          migrate
+
   - name: gcr.io/cloud-builders/docker
     args:
       [
@@ -36,11 +33,9 @@ steps:
         "."
       ]
 
-  # Docker push
   - name: gcr.io/cloud-builders/docker
     args: ["push", "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA"]
 
-  # GKE credentials
   - name: "gcr.io/cloud-builders/gcloud"
     args:
       [
@@ -50,7 +45,6 @@ steps:
         "--project=moonlit-academy-478519-t8"
       ]
       
-  # Apply Kubernetes deployment
   - name: gcr.io/cloud-builders/kubectl
     args:
       [
@@ -63,7 +57,6 @@ steps:
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
       - "CLOUDSDK_PROJECT=moonlit-academy-478519-t8"
 
-  # Update deployment image
   - name: "gcr.io/cloud-builders/kubectl"  
     args: 
       [ 
@@ -74,7 +67,6 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
     
-  # Rollout status check
   - name: "gcr.io/cloud-builders/kubectl"
     args:
       [
@@ -86,21 +78,15 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
-# Secrets correctly referenced
-secrets:
-- secretEnv:
-    DB_USER: projects/moonlit-academy-478519-t8/secrets/db-user/versions/1
-    DB_PASS: projects/moonlit-academy-478519-t8/secrets/db-password/versions/1
-
-# Docker image output
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
 
-# Substitutions
 substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
+  _DB_NAME: "booksdb"
+  _DB_USER: "book_user"
+  _DB_PASSWORD: "root"
 
-# Logging options
 options:
   logging: CLOUD_LOGGING_ONLY
