@@ -18,7 +18,7 @@ steps:
           -url=jdbc:mysql://127.0.0.1:3306/$_DB_NAME \
           -user=$_DB_USER \
           -password=$_DB_PASSWORD \
-          -locations=filesystem:/workspace/Book_app/flyway/sql \
+          -locations=filesystem:/home/moonlit-academy-478519-t8/Book_app/flyway/sql \
           -baselineOnMigrate=true \
           migrate
 
@@ -85,7 +85,7 @@ substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
   _DB_NAME: "booksdb"
-  _DB_USER: "book_user"
+  _DB_USER: "books_user"
   _DB_PASSWORD: "root"
 
 options:
