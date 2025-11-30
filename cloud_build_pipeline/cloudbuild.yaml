@@ -8,6 +8,7 @@ steps:
         "--port=3306",
         "--address=127.0.0.1"
       ]
+    background: true
 
   - name: "flyway/flyway:10.12.0"
     id: "flyway:10.12.0"
