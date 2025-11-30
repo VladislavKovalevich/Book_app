@@ -17,7 +17,7 @@ steps:
       - |
         echo "Running Flyway migrations..."
 
-        ./flyway/flyway \
+        flyway \
           -url=jdbc:mysql://$_DB_PUBLIC_IP:3306/$_DB_NAME \
           -user=$_DB_USER \
           -password=$_DB_PASSWORD \
