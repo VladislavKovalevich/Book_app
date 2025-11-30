@@ -1,27 +1,32 @@
 steps:
   - name: "gcr.io/cloud-builders/wget"
-    id: "Download Flyway"
+    id: "Download and run Flyway"
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        wget -qO flyway.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.10.0/flyway-commandline-10.10.0-linux-x64.tar.gz
-        tar -xzf flyway.tar.gz
-        mv flyway-10.10.0 flyway
+        
+        echo "Download Flyway tool..."
+        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
+        tar -xvf flyway.tar.gz
+        sudo mv flyway-10.12.0 /opt/flyway
+        sudo ln -s /opt/flyway/flyway /usr/local/bin/flyway
+        
+        echo "Flyway downloaded succesfully"
+        
+        echo "Run cloud sql auth proxy..."
+        curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
+        chmod +x cloud-sql-proxy
 
-  - name: "gcr.io/cloud-builders/gcloud"
-    id: "Run Flyway Migrations"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
+        ./cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=0.0.0.0
+        echo "Cloud Sql Auth Proxy is running" 
+        
         echo "Running Flyway migrations..."
-
         flyway \
-          -url=jdbc:mysql://$_DB_PUBLIC_IP:3306/$_DB_NAME \
+          -url=jdbc:mysql://0.0.0.0:3306/$_DB_NAME \
           -user=$_DB_USER \
           -password=$_DB_PASSWORD \
-          -locations=filesystem:Book_app/flyway/sql \
+          -locations=filesystem:/home/moonlit-academy-478519-t8/Book_app/flyway/sql \
           -baselineOnMigrate=true \
           migrate
 
