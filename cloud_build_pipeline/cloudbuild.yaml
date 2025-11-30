@@ -1,24 +1,19 @@
 steps:
-  - name: "ubuntu"
-    id: "Download and run Flyway"
-    entrypoint: "bash"
+  - name: "gcr.io/cloudsql-docker/gce-proxy:2.11.0"
+    id: "Start Cloud SQL Proxy"
+    entrypoint: "sh"
     args:
       - "-c"
       - |
-        echo "=== Download Flyway ==="
-        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
-        tar -xvf flyway.tar.gz
-        export PATH="/usr/local/bin/flyway:/opt/flyway/flyway"
-
-        echo "=== Download Cloud SQL Proxy ==="
-        curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
-        chmod +x cloud-sql-proxy
-
-        echo "=== Start Cloud SQL Proxy in BACKGROUND ==="
-        ./cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 &
-
+        ./cloud_sql_proxy -instances=moonlit-academy-478519-t8:us-central1:books-db=tcp:3306 &
         sleep 5
 
+  - name: "flyway/flyway:10.12.0"
+    id: "Download and run Flyway"
+    entrypoint: "sh"
+    args:
+      - "-c"
+      - |
         echo "=== Run Flyway Migration ==="
         flyway \
           -url=jdbc:mysql://127.0.0.1:3306/$_DB_NAME \
