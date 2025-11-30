@@ -1,11 +1,14 @@
 steps:
-  - name: "gcr.io/cloudsql-docker/gce-proxy:2.11.0"
+  - name: "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0"
     id: "Start Cloud SQL Proxy"
     entrypoint: "sh"
     args:
       - "-c"
       - |
-        ./cloud_sql_proxy -instances=moonlit-academy-478519-t8:us-central1:books-db=tcp:3306 &
+        /cloud_sql_proxy \
+        --instances=moonlit-academy-478519-t8:us-central1:books-db=tcp:3306 \
+        --address 127.0.0.1 \
+        --port 3306 &
         sleep 5
 
   - name: "flyway/flyway:10.12.0"
