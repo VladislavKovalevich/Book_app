@@ -1,29 +1,51 @@
 steps:
-  - name: "gcr.io/moonlit-academy-478519-t8/flyway-proxy:latest"
-    id: "flyway-migrate"
-    entrypoint: "bash"
+   # Step 1: Install Cloud SQL Proxy
+  - name: 'gcr.io/cloud-builders/curl'
+    id: 'install-cloud-sql-proxy'
+    entrypoint: 'bash'
     args:
-      - "-c"
+      - '-c'
       - |
-        # Start Cloud SQL Proxy in the background
-        /cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db \
-          --port=3306 \
-          --address=127.0.0.1 &
-        PROXY_PID=$$!
-        echo "Waiting for Cloud SQL Proxy to be ready..."
-        sleep 5
+        curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
+        chmod +x cloud-sql-proxy
+        mv cloud-sql-proxy /usr/local/bin/
 
-        # Run Flyway migrations
+  # Step 2: Install Flyway
+  - name: 'gcr.io/cloud-builders/curl'
+    id: 'install-flyway'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
+        tar -xvf flyway.tar.gz
+        mv flyway-10.12.0 /opt/flyway
+        ln -s /opt/flyway/flyway /usr/local/bin/flyway
+        flyway -v
+
+  # Step 3: Start Cloud SQL Proxy
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'start-cloud-sql-proxy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        ./usr/local/bin/cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
+        sleep 5  # wait for proxy to be ready
+
+  # Step 4: Run Flyway migration
+  - name: 'gcr.io/cloud-builders/bazel'
+    id: 'flyway-migrate'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         flyway \
-          -url=jdbc:mysql://127.0.0.1:3306/$_DB_NAME \
-          -user=$_DB_USER \
-          -password=$_DB_PASSWORD \
-          -locations=filesystem:/home/moonlit-academy-478519-t8/Book_app/flyway/sql \
-          -baselineOnMigrate=true \
+          -url=jdbc:mysql://127.0.0.1:3306/booksdb \
+          -user=books_user \
+          -password=root \
+          -locations=/home/vladkavalevich_test/Book_app/flyway/sql \
           migrate
-
-        # Stop Cloud SQL Proxy
-        kill $$PROXY_PID
 
   - name: gcr.io/cloud-builders/docker
     args:
