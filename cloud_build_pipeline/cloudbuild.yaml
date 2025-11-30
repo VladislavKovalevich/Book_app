@@ -19,7 +19,7 @@ steps:
         ln -s /opt/flyway/flyway /usr/local/bin/flyway
 
         # Start Cloud SQL Proxy
-        ./cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
+        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=3306 --address=127.0.0.1 &
         sleep 5  # wait for proxy to be ready
 
         # Run Flyway migration
