@@ -21,12 +21,18 @@ steps:
         cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
 
-        # Verify
         flyway -v
         
         if [ ! -d "/workspace/Book_app/.git" ]; then
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         fi
+
+        flyway \
+          -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
+          -user=${_DB_USER} \
+          -password=$$DB_PASSWORD \
+          -locations=filesystem:/workspace/Book_app/flyway/sql \
+          repair
 
         flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
