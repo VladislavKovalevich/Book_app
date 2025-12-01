@@ -42,7 +42,7 @@ steps:
 
         tar -xzf flyway.tar.gz
         mv flyway-10.12.0 flyway
-        export PATH="$$PATH:/workspace/flyway"
+        export PATH="filesystem:/workspace/flyway"
 
         echo "======================================"
         echo "Running Flyway migration..."
