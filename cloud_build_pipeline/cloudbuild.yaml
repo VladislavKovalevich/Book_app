@@ -1,38 +1,65 @@
 steps:
-  - name: 'ubuntu:22.04'
-    id: 'flyway-migrate'
-    entrypoint: 'bash'
+  - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0
+    id: cloudsql-and-flyway
+    entrypoint: bash
+    secretEnv: ["DB_PASSWORD"]
     args:
-      - '-c'
+      - -c
       - |
-        apt-get update && apt-get install -y curl tar default-jdk git
-        
-        curl -o /usr/local/bin/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
-        chmod +x /usr/local/bin/cloud-sql-proxy
+        echo "======================================"
+        echo "Starting Cloud SQL Proxy..."
+        echo "Instance: ${_DB_INSTANCE}"
+        echo "======================================"
 
-        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
-        tar -xvf flyway.tar.gz
-        mv flyway-10.12.0 /opt/flyway
-        ln -s /opt/flyway/flyway /usr/local/bin/flyway
-        
-        git clone https://github.com/VladislavKovalevich/Book_app.git
+        /cloud-sql-proxy \
+          ${_DB_INSTANCE} \
+          --port=3306 \
+          --address=127.0.0.1 &
 
-        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
-        
-        flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
-          -user=books_user \
-          -password=root \
-          -locations=filesystem:Book_app/flyway/sql \
-          repair
+
+        echo "Installing dependencies..."
+        apk add --no-cache git bash curl unzip
+
+        echo "======================================"
+        echo "Cloning repository with caching..."
+        echo "Repository: ${_REPO_URL}"
+        echo "======================================"
+        if [ ! -d "/workspace/Book_app/.git" ]; then
+          git clone --depth 1 ${_REPO_URL} /workspace/Book_app
+        else
+          cd /workspace/Book_app
+          git pull
+        fi
+
+        echo "======================================"
+        echo "Installing Flyway..."
+        echo "======================================"
+
+        FLYWAY_VERSION="10.12.0"
+        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/$FLYWAY_VERSION/flyway-commandline-$FLYWAY_VERSION-linux-x64.tar.gz \
+          -o flyway.tar.gz
+
+        tar -xzf flyway.tar.gz
+        mv flyway-$FLYWAY_VERSION flyway
+        export PATH="$PATH:/workspace/flyway"
+
+        echo "======================================"
+        echo "Running Flyway migration..."
+        echo "DB_HOST: 127.0.0.1"
+        echo "DB_NAME: ${_DB_NAME}"
+        echo "======================================"
 
         flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
-          -user=books_user \
-          -password=root \
-          -locations=filesystem:Book_app/flyway/sql \
+          -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
+          -user=${_DB_USER} \
+          -password=$DB_PASSWORD \
+          -locations=filesystem:/workspace/Book_app/flyway/sql \
           migrate
+
+        echo "======================================"
+        echo "Flyway migration completed successfully!"
+        echo "======================================"
 
   - name: gcr.io/cloud-builders/docker
     args:
@@ -90,15 +117,21 @@ steps:
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
 
+availableSecrets:
+  secretManager:
+    - versionName: "projects/$PROJECT_ID/secrets/db-book-password/versions/1"
+      env: "DB_PASSWORD"
+
 substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
-  _DB_NAME: "booksdb"
-  _DB_USER: "books_user"
-  _DB_PASSWORD: "root"
   _HOME_USER: "vladkavalevich_test"
   _DB_ADDRESS: "127.0.0.1"
   _DB_PORT: "3306"
+  _DB_INSTANCE: "moonlit-academy-478519-t8:us-central1:books-db"
+  _DB_NAME: "booksdb"
+  _DB_USER: "books_user"
+  _REPO_URL: "https://github.com/VladislavKovalevich/Book_app.git"
 
 options:
   logging: CLOUD_LOGGING_ONLY
