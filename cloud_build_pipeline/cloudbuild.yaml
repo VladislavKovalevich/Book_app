@@ -2,32 +2,24 @@ steps:
   - name: debian:bullseye-slim
     id: cloudsql-and-flyway
     secretEnv: ["DB_PASSWORD"]
-    entrypoint: sh
+    entrypoint: 'bash'
     args:
       - -c
       - |
-        apt-get update && apt-get install -y curl git unzip openjdk-17-jdk
-
-        curl -o cloud-sql-proxy https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
-        chmod +x cloud-sql-proxy
-
-        ./cloud-sql-proxy ${_DB_INSTANCE} --port=3306 --address=127.0.0.1 &
-
-        sleep 5
-
-        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz \
-          -o flyway.tar.gz
-        tar -xzf flyway.tar.gz
+        apt-get update && apt-get install -y curl tar default-jdk git
         
-        # Create folder for binary
-        mkdir -p /workspace/flyway
+        curl -o /usr/local/bin/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
+        chmod +x /usr/local/bin/cloud-sql-proxy
 
-        # Move the executable to workspace/flyway
-        mv flyway/flyway /workspace/flyway/
-        chmod +x /workspace/flyway/flyway
+        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
+        tar -xvf flyway.tar.gz
+        mv flyway-10.12.0 /opt/flyway
+        ln -s /opt/flyway/flyway /usr/local/bin/flyway
+        
+        git clone https://github.com/VladislavKovalevich/Book_app.git
 
-        # Add to PATH
-        export PATH="/workspace/flyway:$$PATH"
+        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
+        sleep 5
 
         # Verify
         flyway -v
