@@ -21,13 +21,13 @@ steps:
         mv flyway-10.12.0 /workspace/flyway
         export PATH="/workspace/flyway:$$PATH"
         
-        flyway -v
+        workspace/flyway -v
 
         if [ ! -d "/workspace/Book_app/.git" ]; then
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         fi
 
-        flyway \
+        workspace/flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
           -user=${_DB_USER} \
           -password=$$DB_PASSWORD \
