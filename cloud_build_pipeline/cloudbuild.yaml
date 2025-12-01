@@ -118,7 +118,7 @@ images:
 
 availableSecrets:
   secretManager:
-    - versionName: "projects/$PROJECT_ID/secrets/db-book-password/versions/1"
+    - versionName: "projects/494155220288/secrets/DB_BOOK_PASSWORD/versions/latest"
       env: "DB_PASSWORD"
 
 substitutions:
