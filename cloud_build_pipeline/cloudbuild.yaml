@@ -81,8 +81,8 @@ steps:
 
 secrets:
 - secretEnv:
-    _DB_USER: projects/moonlit-academy-478519-t8/secrets/db-book-user/versions/1
-    _DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-book-password/versions/1
+    _DB_USER: projects/moonlit-academy-478519-t8/secrets/db-book-user/versions/latest
+    _DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-book-password/versions/latest
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
