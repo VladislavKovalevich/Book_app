@@ -18,16 +18,16 @@ steps:
         curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz \
           -o flyway.tar.gz
         tar -xzf flyway.tar.gz
-        mv flyway-10.12.0 /workspace/flyway
-        export PATH="/workspace/flyway:$$PATH"
+        mv flyway-10.12.0 /opt/flyway
+        export PATH="/opt/flyway:/usr/local/bin/flyway"
         
-        workspace/flyway -v
+        flyway -v
 
         if [ ! -d "/workspace/Book_app/.git" ]; then
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         fi
 
-        workspace/flyway \
+        flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
           -user=${_DB_USER} \
           -password=$$DB_PASSWORD \
