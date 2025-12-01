@@ -11,6 +11,7 @@ steps:
         echo "Instance: ${_DB_INSTANCE}"
         echo "======================================"
 
+
         /cloud-sql-proxy \
           ${_DB_INSTANCE} \
           --port=3306 \
