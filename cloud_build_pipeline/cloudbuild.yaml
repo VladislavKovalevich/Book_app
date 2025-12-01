@@ -1,41 +1,26 @@
 steps:
-  - name: alpine:3.18
-    id: cloudsql-and-flyway
+  - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0
+    id: cloudsql-proxy
+    args:
+      [
+        "${_DB_INSTANCE}",
+        "--port=3306",
+        "--address=127.0.0.1"
+      ]
+    waitFor: ["-"]   # background, next step runs immediately
+
+  # -------------------------------------------------------------------
+  # Step 2: Flyway migration using official Flyway image
+  # -------------------------------------------------------------------
+  - name: flyway/flyway:10.12.0
+    id: flyway-migrate
     secretEnv: ["DB_PASSWORD"]
     entrypoint: sh
     args:
       - -c
       - |
-        apk add --no-cache curl git bash unzip openjdk17
-
-        curl -o cloud-sql-proxy https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
-        chmod +x cloud-sql-proxy
-
-        ./cloud-sql-proxy ${_DB_INSTANCE} --port=3306 --address=127.0.0.1 &
-
-        sleep 5
-
-        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz \
-          -o flyway.tar.gz
-        tar -xzf flyway.tar.gz
-        
-        # Create folder for binary
-        mkdir -p /workspace/flyway
-
-        # Move the executable to workspace/flyway
-        mv flyway-10.12.0/flyway /workspace/flyway/
-        chmod +x /workspace/flyway/flyway
-
-        # Add to PATH
-        export PATH="/workspace/flyway:$$PATH"
-
-        # Verify
-        flyway -v
-        
-        if [ ! -d "/workspace/Book_app/.git" ]; then
-          git clone --depth 1 ${_REPO_URL} /workspace/Book_app
-        fi
-
+        apk add --no-cache git
+        git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
           -user=${_DB_USER} \
