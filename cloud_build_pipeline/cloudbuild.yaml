@@ -22,7 +22,7 @@ steps:
           -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
           -user=books_user \
           -password=root \
-          -locations=home/$_HOME_USER/Book_app/flyway/sql \
+          -locations=filesystem:$_HOME_USER/Book_app/flyway/sql \
           migrate
 
   - name: gcr.io/cloud-builders/docker
