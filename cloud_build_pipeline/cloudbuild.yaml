@@ -14,6 +14,8 @@ steps:
         tar -xvf flyway.tar.gz
         mv flyway-10.12.0 /opt/flyway
         ln -s /opt/flyway/flyway /usr/local/bin/flyway
+        
+        git clone https://github.com/VladislavKovalevich/Book_app.git
 
         cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
@@ -22,7 +24,7 @@ steps:
           -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
           -user=books_user \
           -password=root \
-          -locations=filesystem:$_HOME_USER/Book_app/flyway/sql \
+          -locations=-locations=filesystem:Book_app/flyway/sql \
           migrate
 
   - name: gcr.io/cloud-builders/docker
