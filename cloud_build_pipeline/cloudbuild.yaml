@@ -1,12 +1,12 @@
 steps:
-  - name: 'gcr.io/cloudsql-docker/gce-proxy:2.11.0'
+  - name: 'gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0'
     id: 'cloud-sql-proxy'
     entrypoint: '/cloud_sql_proxy'
     args:
       [
         "moonlit-academy-478519-t8:us-central1:books-db",
         "--port=$_DB_PORT",
-        "-address=$_DB_ADDRESS"
+        "--address=$_DB_ADDRESS"
       ]
     waitFor: ['-']
 
