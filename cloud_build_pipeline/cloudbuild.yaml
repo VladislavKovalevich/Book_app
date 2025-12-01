@@ -19,6 +19,13 @@ steps:
 
         cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
+        
+        flyway \
+          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
+          -user=books_user \
+          -password=root \
+          -locations=filesystem:Book_app/flyway/sql \
+          repair
 
         flyway \
           -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
