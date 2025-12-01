@@ -1,38 +1,30 @@
 steps:
-  - name: 'ubuntu:22.04'
+  - name: 'gcr.io/cloudsql-docker/gce-proxy:2.11.0'
+    id: 'cloud-sql-proxy'
+    entrypoint: '/cloud_sql_proxy'
+    args:
+      [
+        "moonlit-academy-478519-t8:us-central1:books-db",
+        "--port=$_DB_PORT",
+        "-address=$_DB_ADDRESS"
+      ]
+    waitFor: ['-']
+
+  - name: 'flyway/flyway:10.12.0'
     id: 'flyway-migrate'
-    entrypoint: 'bash'
+    secretEnv: ['DB_USER', 'DB_PASSWORD']
+    entrypoint: 'sh'
     args:
       - '-c'
       - |
-        apt-get update && apt-get install -y curl tar default-jdk git
-        
-        curl -o /usr/local/bin/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
-        chmod +x /usr/local/bin/cloud-sql-proxy
-
-        curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz -o flyway.tar.gz
-        tar -xvf flyway.tar.gz
-        mv flyway-10.12.0 /opt/flyway
-        ln -s /opt/flyway/flyway /usr/local/bin/flyway
-        
-        git clone https://github.com/VladislavKovalevich/Book_app.git
-
-        cloud-sql-proxy moonlit-academy-478519-t8:us-central1:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
-        sleep 5
-        
-        flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
-          -user=books_user \
-          -password=root \
-          -locations=filesystem:Book_app/flyway/sql \
-          repair
-
-        flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:$_DB_PORT/booksdb \
-          -user=books_user \
-          -password=root \
-          -locations=filesystem:Book_app/flyway/sql \
-          migrate
+        apk add --no-cache git bash curl
+        git clone https://github.com/VladislavKovalevich/Book_app.git /workspace/Book_app
+        /flyway/flyway \
+            -url=jdbc:mysql://127.0.0.1:5432/booksdb \
+            -user=$DB_USER \
+            -password=$DB_PASSWORD \
+            -locations=filesystem:/workspace/Book_app/flyway/sql \
+        migrate
 
   - name: gcr.io/cloud-builders/docker
     args:
@@ -94,8 +86,6 @@ substitutions:
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
   _DB_NAME: "booksdb"
-  _DB_USER: "books_user"
-  _DB_PASSWORD: "root"
   _HOME_USER: "vladkavalevich_test"
   _DB_ADDRESS: "127.0.0.1"
   _DB_PORT: "3306"
