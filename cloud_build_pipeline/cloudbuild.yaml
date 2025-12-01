@@ -12,7 +12,6 @@ steps:
 
   - name: 'flyway/flyway:10.12.0'
     id: 'flyway-migrate'
-    secretEnv: ['_DB_USER', '_DB_PASSWORD']
     entrypoint: 'sh'
     args:
       - '-c'
@@ -21,8 +20,8 @@ steps:
         git clone https://github.com/VladislavKovalevich/Book_app.git /workspace/Book_app
         /flyway/flyway \
             -url=jdbc:mysql://127.0.0.1:5432/booksdb \
-            -user=$DB_USER \
-            -password=$DB_PASSWORD \
+            -user=books_user \
+            -password=root \
             -locations=filesystem:/workspace/Book_app/flyway/sql \
         migrate
 
@@ -78,11 +77,6 @@ steps:
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-
-secrets:
-- secretEnv:
-    _DB_USER: projects/moonlit-academy-478519-t8/secrets/db-book-user/versions/latest
-    _DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-book-password/versions/latest
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
