@@ -19,7 +19,9 @@ steps:
           -o flyway.tar.gz
         tar -xzf flyway.tar.gz
         mv flyway-10.12.0 /workspace/flyway
-        export PATH="$$PATH:/workspace/flyway"
+        export PATH="/workspace/flyway:$$PATH"
+        
+        flyway -v
 
         if [ ! -d "/workspace/Book_app/.git" ]; then
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
