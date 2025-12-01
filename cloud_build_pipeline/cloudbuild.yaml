@@ -118,7 +118,7 @@ images:
 
 availableSecrets:
   secretManager:
-    - versionName: "projects/moonlit-academy-478519-t8/secrets/DB_BOOK_PASSWORD/versions/latest"
+    - versionName: "projects/494155220288/secrets/DB_BOOK_PASSWORD/versions/latest"
       env: "DB_PASSWORD"
 
 substitutions:
