@@ -41,7 +41,7 @@ steps:
 
         tar -xzf flyway.tar.gz
         mv flyway-10.12.0 flyway
-        export PATH="$PATH:/workspace/flyway"
+        export PATH="$$PATH:/workspace/flyway"
 
         echo "======================================"
         echo "Running Flyway migration..."
@@ -52,7 +52,7 @@ steps:
         flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
           -user=${_DB_USER} \
-          -password=$DB_PASSWORD \
+          -password=$$DB_PASSWORD \
           -locations=filesystem:/workspace/Book_app/flyway/sql \
           migrate
 
