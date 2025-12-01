@@ -18,14 +18,12 @@ steps:
         curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz \
           -o flyway.tar.gz
         tar -xzf flyway.tar.gz
-        mv flyway-10.12.0 /workspace/flyway
-        export PATH="/workspace/flyway:$$PATH"
         
         # Create folder for binary
         mkdir -p /workspace/flyway
 
         # Move the executable to workspace/flyway
-        mv flyway-$FLYWAY_VERSION/flyway /workspace/flyway/
+        mv flyway-10.12.0/flyway /workspace/flyway/
         chmod +x /workspace/flyway/flyway
 
         # Add to PATH
