@@ -6,7 +6,7 @@ steps:
     args:
       - -c
       - |
-        apk add --no-cache curl git bash unzip openjdk17
+        apt-get update && apt-get install -y curl git unzip openjdk-17-jdk
 
         curl -o cloud-sql-proxy https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
         chmod +x cloud-sql-proxy
@@ -23,7 +23,7 @@ steps:
         mkdir -p /workspace/flyway
 
         # Move the executable to workspace/flyway
-        mv flyway-/flyway /workspace/flyway/
+        mv flyway/flyway /workspace/flyway/
         chmod +x /workspace/flyway/flyway
 
         # Add to PATH
