@@ -1,7 +1,7 @@
 steps:
   - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0
     id: cloudsql-and-flyway
-    entrypoint: bash
+    entrypoint: sh
     secretEnv: ["DB_PASSWORD"]
     args:
       - -c
