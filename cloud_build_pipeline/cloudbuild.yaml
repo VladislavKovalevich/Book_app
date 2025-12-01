@@ -12,7 +12,7 @@ steps:
 
   - name: 'flyway/flyway:10.12.0'
     id: 'flyway-migrate'
-    secretEnv: ['DB_USER', 'DB_PASSWORD']
+    secretEnv: ['_DB_USER', '_DB_PASSWORD']
     entrypoint: 'sh'
     args:
       - '-c'
@@ -81,8 +81,8 @@ steps:
 
 secrets:
 - secretEnv:
-    DB_USER: projects/PROJECT_ID/secrets/books-db-user/versions/latest
-    DB_PASSWORD: projects/PROJECT_ID/secrets/books-db-pass/versions/latest
+    _DB_USER: projects/moonlit-academy-478519-t8/secrets/db-book-user/versions/1
+    _DB_PASSWORD: projects/moonlit-academy-478519-t8/secrets/db-book-password/versions/1
 
 images:
   - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
