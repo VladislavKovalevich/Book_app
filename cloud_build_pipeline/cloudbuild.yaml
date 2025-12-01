@@ -1,65 +1,36 @@
 steps:
-  - name: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.19.0
+  - name: alpine:3.18
     id: cloudsql-and-flyway
-    entrypoint: sh
     secretEnv: ["DB_PASSWORD"]
+    entrypoint: sh
     args:
       - -c
       - |
-        echo "======================================"
-        echo "Starting Cloud SQL Proxy..."
-        echo "Instance: ${_DB_INSTANCE}"
-        echo "======================================"
+        apk add --no-cache curl git bash unzip openjdk17
 
+        curl -o cloud-sql-proxy https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64
+        chmod +x cloud-sql-proxy
 
-        /cloud-sql-proxy \
-          ${_DB_INSTANCE} \
-          --port=3306 \
-          --address=127.0.0.1 &
+        ./cloud-sql-proxy ${_DB_INSTANCE} --port=3306 --address=127.0.0.1 &
 
         sleep 5
 
-        echo "Installing dependencies..."
-        apk add --no-cache git bash curl unzip
-
-        echo "======================================"
-        echo "Cloning repository with caching..."
-        echo "Repository: ${_REPO_URL}"
-        echo "======================================"
-        if [ ! -d "/workspace/Book_app/.git" ]; then
-          git clone --depth 1 ${_REPO_URL} /workspace/Book_app
-        else
-          cd /workspace/Book_app
-          git pull
-        fi
-
-        echo "======================================"
-        echo "Installing Flyway..."
-        echo "======================================"
-
         curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.12.0/flyway-commandline-10.12.0-linux-x64.tar.gz \
           -o flyway.tar.gz
-
         tar -xzf flyway.tar.gz
-        mv flyway-10.12.0 flyway
-        export PATH="filesystem:/workspace/flyway"
+        mv flyway-10.12.0 /workspace/flyway
+        export PATH="$$PATH:/workspace/flyway"
 
-        echo "======================================"
-        echo "Running Flyway migration..."
-        echo "DB_HOST: 127.0.0.1"
-        echo "DB_NAME: ${_DB_NAME}"
-        echo "======================================"
+        if [ ! -d "/workspace/Book_app/.git" ]; then
+          git clone --depth 1 ${_REPO_URL} /workspace/Book_app
+        fi
 
         flyway \
           -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
           -user=${_DB_USER} \
-          -password=$$DB_PASSWORD \
+          -password=$DB_PASSWORD \
           -locations=filesystem:/workspace/Book_app/flyway/sql \
           migrate
-
-        echo "======================================"
-        echo "Flyway migration completed successfully!"
-        echo "======================================"
 
   - name: gcr.io/cloud-builders/docker
     args:
