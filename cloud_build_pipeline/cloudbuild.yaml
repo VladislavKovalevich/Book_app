@@ -1,7 +1,7 @@
 steps:
   - name: debian:bullseye-slim
     id: cloudsql-and-flyway
-    secretEnv: ["DB_PASSWORD"]
+    secretEnv: ["DB_PASSWORD", "DB_USER"]
     entrypoint: 'bash'
     args:
       - -c
@@ -18,7 +18,7 @@ steps:
         
         git clone https://github.com/VladislavKovalevich/Book_app.git
 
-        cloud-sql-proxy $PROJECT_ID:$LOCATION:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
+        cloud-sql-proxy $PROJECT_ID:$_REGION:$_DB_INSTANCE_NAME --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
 
         flyway -v
@@ -28,15 +28,15 @@ steps:
         fi
 
         flyway \
-          -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
-          -user=${_DB_USER} \
+          -url=jdbc:mysql://$_DB_ADDRESS:${_DB_PORT}/${_DB_NAME} \
+          -user=$$DB_USER \
           -password=$$DB_PASSWORD \
           -locations=filesystem:/workspace/Book_app/flyway/sql \
           repair
 
         flyway \
-          -url=jdbc:mysql://127.0.0.1:3306/${_DB_NAME} \
-          -user=${_DB_USER} \
+          -url=jdbc:mysql://$_DB_ADDRESS:${_DB_PORT}/${_DB_NAME} \
+          -user=$$DB_USER \
           -password=$$DB_PASSWORD \
           -locations=filesystem:/workspace/Book_app/flyway/sql \
           migrate
@@ -45,12 +45,12 @@ steps:
     args:
       [
         "build",
-        "-t", "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA",
+        "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA",
         "."
       ]
 
   - name: gcr.io/cloud-builders/docker
-    args: ["push", "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA"]
+    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA"]
 
   - name: "gcr.io/cloud-builders/gcloud"
     args:
@@ -58,7 +58,7 @@ steps:
         "container", "clusters", "get-credentials",
         "$_GKE_CLUSTER",
         "--region=$_GKE_ZONE",
-        "--project=moonlit-academy-478519-t8"
+        "--project=$PROJECT_ID"
       ]
       
   - name: gcr.io/cloud-builders/kubectl
@@ -71,13 +71,13 @@ steps:
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-      - "CLOUDSDK_PROJECT=moonlit-academy-478519-t8"
+      - "CLOUDSDK_PROJECT=$PROJECT_ID"
 
   - name: "gcr.io/cloud-builders/kubectl"  
     args: 
       [ 
         "set", "image", "deployment/book-app", 
-        "book-app=us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:$SHORT_SHA", 
+        "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA", 
       ]
     env: 
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
@@ -95,20 +95,23 @@ steps:
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
 images:
-  - "us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image"
 
 availableSecrets:
   secretManager:
     - versionName: "projects/494155220288/secrets/DB_BOOK_PASSWORD/versions/latest"
       env: "DB_PASSWORD"
+    - versionName: "projects/494155220288/secrets/DB_BOOK_USER/versions/latest"
+      env: "DB_USER"
 
 substitutions:
+  _REGION: "us-central1"
   _GKE_CLUSTER: "books-cluster"
   _GKE_ZONE: "us-central1"
   _HOME_USER: "vladkavalevich_test"
   _DB_ADDRESS: "127.0.0.1"
   _DB_PORT: "3306"
-  _DB_INSTANCE: "moonlit-academy-478519-t8:us-central1:books-db"
+  _DB_INSTANCE_NAME: "books-db"
   _DB_NAME: "booksdb"
   _DB_USER: "books_user"
   _REPO_URL: "https://github.com/VladislavKovalevich/Book_app.git"
