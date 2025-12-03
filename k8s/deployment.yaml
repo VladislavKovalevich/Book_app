@@ -23,7 +23,7 @@ spec:
       serviceAccountName: ksa-book-app
       containers:
         - name: book-app
-          image: us-central1-docker.pkg.dev/moonlit-academy-478519-t8/book-app-docker-repo/book-app-image:v0.1
+          image: us-central1-docker.pkg.dev/my-book-project-480021/book-app-docker-repo/book-app-image:v0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: DB_HOST
@@ -58,7 +58,7 @@ spec:
             - "--address=0.0.0.0"
             - "--port=3306"
             - "--private-ip"
-            - "moonlit-academy-478519-t8:us-central1:books-db"
+            - "my-book-project-480021:us-central1:books-db"
           ports:
             - containerPort: 3306
               name: cloudsql
