@@ -18,7 +18,7 @@ steps:
         
         git clone https://github.com/VladislavKovalevich/Book_app.git
 
-        cloud-sql-proxy $$PROJECT_ID:$$REGION:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
+        cloud-sql-proxy $PROJECT_ID:$LOCATION:books-db --port=$_DB_PORT --address=$_DB_ADDRESS &
         sleep 5
 
         flyway -v
