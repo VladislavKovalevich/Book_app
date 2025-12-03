@@ -99,9 +99,9 @@ images:
 
 availableSecrets:
   secretManager:
-    - versionName: "projects/494155220288/secrets/DB_PASSWORD/versions/latest"
+    - versionName: "projects/414825273014/secrets/db-password/versions/latest"
       env: "DB_PASSWORD"
-    - versionName: "projects/494155220288/secrets/DB_USER/versions/latest"
+    - versionName: "projects/414825273014/secrets/db-user/versions/latest"
       env: "DB_USER"
 
 substitutions:
