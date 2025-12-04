@@ -45,12 +45,12 @@ steps:
     args:
       [
         "build",
-        "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:v0.1",
+        "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA}",
         "."
       ]
 
   - name: gcr.io/cloud-builders/docker
-    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:v0.1"]
+    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA}"]
 
   - name: "gcr.io/cloud-builders/gcloud"
     args:
@@ -77,7 +77,7 @@ steps:
     args: 
       [ 
         "set", "image", "deployment/book-app", 
-        "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:v0.1", 
+        "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA}", 
       ]
     env: 
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
