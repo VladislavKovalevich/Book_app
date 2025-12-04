@@ -45,12 +45,12 @@ steps:
     args:
       [
         "build",
-        "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA",
+        "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA:-${_TAG}}",
         "."
       ]
 
   - name: gcr.io/cloud-builders/docker
-    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA"]
+    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA:-${_TAG}}"]
 
   - name: "gcr.io/cloud-builders/gcloud"
     args:
@@ -77,7 +77,7 @@ steps:
     args: 
       [ 
         "set", "image", "deployment/book-app", 
-        "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:$SHORT_SHA", 
+        "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA:-${_TAG}}", 
       ]
     env: 
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
@@ -111,8 +111,9 @@ substitutions:
   _DB_ADDRESS: "127.0.0.1"
   _DB_PORT: "3306"
   _DB_INSTANCE_NAME: "books-db"
-  _DB_NAME: "booksdb"
+  _DB_NAME: "books-db"
   _REPO_URL: "https://github.com/VladislavKovalevich/Book_app.git"
+  _TAG: "v0.1"
 
 options:
   logging: CLOUD_LOGGING_ONLY

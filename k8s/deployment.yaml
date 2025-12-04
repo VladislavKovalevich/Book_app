@@ -33,12 +33,12 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: db-book-pass-credentials
+                  name: db-credentials
                   key: DB_USER
             - name: DB_PASS
               valueFrom:
                 secretKeyRef:
-                  name: db-book-pass-credentials
+                  name: db-credentials
                   key: DB_PASS
             - name: PORT
               value: "80"
