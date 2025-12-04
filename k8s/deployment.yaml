@@ -23,7 +23,7 @@ spec:
       serviceAccountName: ksa-book-app
       containers:
         - name: book-app
-          image: us-central1-docker.pkg.dev/my-book-project-480021/book-app-docker-repo/book-app-image:_v0.1
+          image: us-central1-docker.pkg.dev/my-book-project-480021/book-app-docker-repo/book-app-image:v0.1
           imagePullPolicy: IfNotPresent
           env:
             - name: DB_HOST
