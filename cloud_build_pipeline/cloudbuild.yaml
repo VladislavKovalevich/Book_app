@@ -6,6 +6,8 @@ steps:
     args:
       - -c
       - |
+        set -e
+
         apt-get update && apt-get install -y curl tar default-jdk git
         
         curl -o /usr/local/bin/cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64
@@ -15,31 +17,33 @@ steps:
         tar -xvf flyway.tar.gz
         mv flyway-10.12.0 /opt/flyway
         ln -s /opt/flyway/flyway /usr/local/bin/flyway
-        
-        git clone https://github.com/VladislavKovalevich/Book_app.git
-
-        cloud-sql-proxy $PROJECT_ID:$_REGION:$_DB_INSTANCE_NAME --port=$_DB_PORT --address=$_DB_ADDRESS &
-        sleep 5
-
-        flyway -v
-        
+                
         if [ ! -d "/workspace/Book_app/.git" ]; then
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         fi
 
-        flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:${_DB_PORT}/${_DB_NAME} \
-          -user=$$DB_USER \
-          -password=$$DB_PASSWORD \
-          -locations=filesystem:/workspace/Book_app/flyway/sql \
-          repair
+        cloud-sql-proxy $PROJECT_ID:$(_REGION}:${_DB_INSTANCE_NAME} \
+            --port=${_DB_PORT} --address=${_DB_ADDRESS} &
+        
+        echo "Waiting for Cloud SQL Proxy..."
+        until nc -z ${_DB_ADDRESS} ${_DB_PORT}; do
+          sleep 1
+        done
+        
+        cat <<EOF > flyway.conf
+        flyway.url=jdbc:mysql://${_DB_ADDRESS}:${_DB_PORT}/${_DB_NAME}
+        flyway.user=${DB_USER}
+        flyway.password=${DB_PASSWORD}
+        flyway.locations=filesystem:/workspace/Book_app/flyway/sql
+        EOF
 
-        flyway \
-          -url=jdbc:mysql://$_DB_ADDRESS:${_DB_PORT}/${_DB_NAME} \
-          -user=$$DB_USER \
-          -password=$$DB_PASSWORD \
-          -locations=filesystem:/workspace/Book_app/flyway/sql \
-          migrate
+        chmod 600 flyway.conf
+
+        flyway -v
+        flyway -configFiles=flyway.conf repair
+        flyway -configFiles=flyway.conf migrate
+
+        rm flyway.conf
 
   - name: gcr.io/cloud-builders/docker
     args:
@@ -57,7 +61,7 @@ steps:
       [
         "container", "clusters", "get-credentials",
         "$_GKE_CLUSTER",
-        "--region=$_GKE_ZONE",
+        "--region=$_GKE_REGION",
         "--project=$PROJECT_ID"
       ]
       
@@ -69,7 +73,7 @@ steps:
         "k8s/deployment.yaml",
       ]
     env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
       - "CLOUDSDK_PROJECT=$PROJECT_ID"
 
@@ -80,7 +84,7 @@ steps:
         "book-app=${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image:${SHORT_SHA}", 
       ]
     env: 
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE" 
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION" 
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
     
   - name: "gcr.io/cloud-builders/kubectl"
@@ -91,7 +95,7 @@ steps:
         "--timeout=5m",
       ]
     env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
 
   - name: "gcr.io/cloud-builders/kubectl"
@@ -102,7 +106,7 @@ steps:
         "Book_app/k8s/service.yaml",
       ]
     env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_ZONE"
+      - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
       - "CLOUDSDK_PROJECT=$PROJECT_ID"
 
@@ -119,7 +123,7 @@ availableSecrets:
 substitutions:
   _REGION: "us-central1"
   _GKE_CLUSTER: "books-cluster"
-  _GKE_ZONE: "us-central1"
+  _GKE_REGION: "us-central1"
   _DB_ADDRESS: "127.0.0.1"
   _DB_PORT: "3306"
   _DB_INSTANCE_NAME: "books-db"
