@@ -22,7 +22,7 @@ steps:
           git clone --depth 1 ${_REPO_URL} /workspace/Book_app
         fi
 
-        cloud-sql-proxy $PROJECT_ID:$(_REGION}:${_DB_INSTANCE_NAME} \
+        cloud-sql-proxy $PROJECT_ID:${_REGION}:${_DB_INSTANCE_NAME} \
             --port=${_DB_PORT} --address=${_DB_ADDRESS} &
         
         echo "Waiting for Cloud SQL Proxy..."
