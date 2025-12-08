@@ -32,8 +32,8 @@ steps:
         
         cat <<EOF > flyway.conf
         flyway.url=jdbc:mysql://${_DB_ADDRESS}:${_DB_PORT}/${_DB_NAME}
-        flyway.user=${DB_USER}
-        flyway.password=${DB_PASSWORD}
+        flyway.user=$$DB_USER
+        flyway.password=$$DB_PASSWORD
         flyway.locations=filesystem:/workspace/Book_app/flyway/sql
         EOF
 
