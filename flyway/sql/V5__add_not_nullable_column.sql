@@ -1,0 +1,7 @@
+ALTER TABLE books
+ADD genre VARCHAR(40);
+UPDATE books 
+SET genre = 'Unknown' 
+WHERE genre IS NULL;
+ALTER TABLE books
+MODIFY COLUMN genre VARCHAR(40) NOT NULL;
