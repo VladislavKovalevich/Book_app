@@ -59,10 +59,11 @@ app.post('/create-book', async (req, res) => {
 	if (!genre) {
         return res.status(400).json({ error: 'Genre is required.' });
     }
+	
 	try {
     const [result] = await pool.query(
-      'INSERT INTO books (title, author, publish_year, description, genre) VALUES (?, ?, ?, ?, ?)', [title, author, parseInt(publish_year, 10), description, genre]);
-    	res.json({ id: result.insertId, title, author, publish_year: parseInt(publish_year, 10), description });
+      'INSERT INTO books (title, author, publish_year, description, genre) VALUES (?, ?, ?, ?, ?, ?)', [title, author, parseInt(publish_year, 10), description, genre]);
+    	res.json({ id: result.insertId, title, author, publish_year: parseInt(publish_year, 10), description, genre	});
   	} catch (err) {
     	console.error(err);
     	res.status(500).send('DB error');
@@ -96,7 +97,7 @@ app.delete('/books/:id', async (req, res) => {
 // PUT endpoint to update an existing book by id
 app.put('/books/:id', async (req, res) => {
 	const bookId = parseInt(req.params.id, 10);
-	const { title, author, publish_year, description, genre } = req.body;
+	const { title, author, publish_year, description, genre} = req.body;
 	if (!title) {
 		return res.status(400).json({ error: 'Title is required.' });
 	}
@@ -112,10 +113,11 @@ app.put('/books/:id', async (req, res) => {
 	if (!genre) {
         return res.status(400).json({ error: 'Genre is required.' });
     }
+	
 	try {
 	const [result] = await pool.query(
-	  'UPDATE books SET title = ?, author = ?, publish_year = ?, description = ?, genre = ?	 WHERE id = ?', [title, author, parseInt(publish_year, 10), description, genre, bookId]);
-		res.json({ id: bookId, title, author, publish_year: parseInt(publish_year, 10), description });
+	  'UPDATE books SET title = ?, author = ?, publish_year = ?, description = ?, genre = ? WHERE id = ?', [title, author, parseInt(publish_year, 10), description, genre, bookId]);
+		res.json({ id: bookId, title, author, publish_year: parseInt(publish_year, 10), description, genre});
   	} catch (err) {
 		console.error(err);
 		res.status(500).send('DB error');
