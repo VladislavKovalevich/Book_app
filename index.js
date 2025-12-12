@@ -62,7 +62,7 @@ app.post('/create-book', async (req, res) => {
 	
 	try {
     const [result] = await pool.query(
-      'INSERT INTO books (title, author, publish_year, description, genre) VALUES (?, ?, ?, ?, ?, ?)', [title, author, parseInt(publish_year, 10), description, genre]);
+      'INSERT INTO books (title, author, publish_year, description, genre) VALUES (?, ?, ?, ?, ?)', [title, author, parseInt(publish_year, 10), description, genre]);
     	res.json({ id: result.insertId, title, author, publish_year: parseInt(publish_year, 10), description, genre	});
   	} catch (err) {
     	console.error(err);
