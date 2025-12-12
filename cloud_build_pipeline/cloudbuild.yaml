@@ -68,9 +68,7 @@ steps:
   - name: gcr.io/cloud-builders/kubectl
     args:
       [
-        "apply", 
-        "-f", 
-        "k8s/deployment.yaml",
+        "apply", "-f", "k8s/",
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
@@ -97,18 +95,6 @@ steps:
     env:
       - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
       - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-
-  - name: "gcr.io/cloud-builders/kubectl"
-    args:
-      [
-        "apply", 
-        "-f", 
-        "Book_app/k8s/service.yaml",
-      ]
-    env:
-      - "CLOUDSDK_COMPUTE_REGION=$_GKE_REGION"
-      - "CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER"
-      - "CLOUDSDK_PROJECT=$PROJECT_ID"
 
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/book-app-docker-repo/book-app-image"
