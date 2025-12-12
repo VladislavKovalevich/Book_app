@@ -1,0 +1,2 @@
+ALTER TABLE books
+ADD subtitle VARCHAR(50);
